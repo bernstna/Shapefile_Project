@@ -16,3 +16,15 @@ export var viewer = new Viewer('cesiumContainer', {
     shouldAnimate: true,
     //terrainProvider: await CesiumTerrainProvider.fromIonAssetId(1)
 });
+
+//https://github.com/calvinmetcalf/shapefile-js/blob/gh-pages/README.md
+//for the shapefiles in the folder called 'files' with the name pandr.shp
+shp("src/shpfiles/*").then(function(geojson){
+
+});
+viewer.dataSources.add(Cesium.GeoJsonDataSource.load('', {
+  stroke: Cesium.Color.HOTPINK,
+  fill: Cesium.Color.PINK,
+  strokeWidth: 3,
+  markerSymbol: '?'
+}));
