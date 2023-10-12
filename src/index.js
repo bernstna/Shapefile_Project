@@ -1,4 +1,9 @@
-import { Ion, Viewer, createWorldTerrain, createOsmBuildings, Cartesian3, Math } from "cesium";
+import {
+    Ion,
+    Viewer,
+    ImageryLayer,
+    JulianDate, ClockRange,
+} from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import "../src/css/main.css"
 
@@ -7,15 +12,7 @@ import "../src/css/main.css"
 Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3YzQwYzY4NS1kYThlLTRhZGEtYTIzMC0wNmY2MjgzOTQ1OGEiLCJpZCI6MTcwMzQ0LCJpYXQiOjE2OTY2MTYzMDd9.K7ePPqvfyaV2cXd5zPzTAMSbbCfhBJLP_mmDFl5hT-U';
 
 // Initialize the Cesium Viewer in the HTML element with the `cesiumContainer` ID.
-const viewer = new Cesium.Viewer('cesiumContainer');
-
-
-
-// Fly the camera to San Francisco at the given longitude, latitude, and height.
-viewer.camera.flyTo({
-destination : Cartesian3.fromDegrees(-122.4175, 37.655, 400),
-orientation : {
-    heading : Math.toRadians(0.0),
-    pitch : Math.toRadians(-15.0),
-}
+export var viewer = new Viewer('cesiumContainer', {
+    shouldAnimate: true,
+    //terrainProvider: await CesiumTerrainProvider.fromIonAssetId(1)
 });
