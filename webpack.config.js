@@ -16,6 +16,10 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         sourcePrefix: ''
     },
+    amd: {
+        // Enable webpack-friendly use of require in Cesium
+        toUrlUndefined: true
+    },
     resolve: {
         fallback: { "https": false, "zlib": false, "http": false, "url": false },
         mainFiles: ['index', 'Cesium']
