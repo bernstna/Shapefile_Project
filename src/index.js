@@ -18,13 +18,12 @@ export var viewer = new Viewer('cesiumContainer', {
 });
 
 //https://github.com/calvinmetcalf/shapefile-js/blob/gh-pages/README.md
-//for the shapefiles in the folder called 'files' with the name pandr.shp
+//Using the shp commond, this should load any file from the shpfiles folder, then turn it into a geojson, which is then used by the viewer.
 shp("src/shpfiles/*").then(function(geojson){
-
+  viewer.dataSources.add(Cesium.GeoJsonDataSource.load('geojson', {
+    stroke: Cesium.Color.HOTPINK,
+    fill: Cesium.Color.PINK,
+    strokeWidth: 3,
+    markerSymbol: '?'
+  }));
 });
-viewer.dataSources.add(Cesium.GeoJsonDataSource.load('', {
-  stroke: Cesium.Color.HOTPINK,
-  fill: Cesium.Color.PINK,
-  strokeWidth: 3,
-  markerSymbol: '?'
-}));
