@@ -29,7 +29,7 @@ module.exports = {
             test: /\.css$/,
             use: [ 'style-loader', 'css-loader' ]
         }, {
-            test: /\.(png|gif|jpg|jpeg|svg|xml|json)$/,
+            test: /\.(png|gif|jpg|jpeg|svg|xml|json|geojson)$/,
             use: [ 'url-loader' ]
         }]
     },
@@ -42,7 +42,8 @@ module.exports = {
             patterns: [
                 { from: path.join(cesiumSource, cesiumWorkers), to: 'Workers' },
                 { from: path.join(cesiumSource, 'Assets'), to: 'Assets' },
-                { from: path.join(cesiumSource, 'Widgets'), to: 'Widgets' }
+                { from: path.join(cesiumSource, 'Widgets'), to: 'Widgets' },
+                { from: 'src/shpfiles/mygeodata', to: 'Shapes' }
             ]
         }),
         new webpack.DefinePlugin({
