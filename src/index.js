@@ -14,9 +14,9 @@ import {
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import "../src/css/main.css"
-import "./shpfiles/mygeodata/data.geojson"
 
-// Your access token can be found at: https://cesium.com/ion/tokens.
+
+// Your access token can be found at: https://com/ion/tokens.
 // This is the default access token
 Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3YzQwYzY4NS1kYThlLTRhZGEtYTIzMC0wNmY2MjgzOTQ1OGEiLCJpZCI6MTcwMzQ0LCJpYXQiOjE2OTY2MTYzMDd9.K7ePPqvfyaV2cXd5zPzTAMSbbCfhBJLP_mmDFl5hT-U';
 
@@ -31,25 +31,39 @@ export var viewer = new Viewer('cesiumContainer', {
 //https://github.com/calvinmetcalf/shapefile-js/blob/gh-pages/README.md
 //Using the shp commond, this should load any file from the shpfiles folder, then turn it into a geojson, which is then used by the viewer.
 shp("src/shpfiles/*").then(function(geojson){
-  viewer.dataSources.add(Cesium.GeoJsonDataSource.load('geojson', {
-    stroke: Cesium.Color.HOTPINK,
-    fill: Cesium.Color.PINK,
+  viewer.dataSources.add(GeoJsonDataSource.load('geojson', {
+    stroke: Color.HOTPINK,
+    fill: Color.PINK,
     strokeWidth: 3,
     markerSymbol: '?'
   }));
 });
 */
 
-//const data = './shpfiles/json.txt'
-
-viewer.dataSources.add(GeoJsonDataSource.load('./shpfiles/mygeodata/data.geojson', {
+const dataSource = await GeoJsonDataSource.load('Shapes/data.geojson', {
   stroke: Color.HOTPINK,
   fill: Color.PINK,
   strokeWidth: 3,
-}));
+  clampToGround: true,
+})
 
-/*const timeStepInSeconds = 30;
-const totalSeconds = timeStepInSeconds * (data.length - 1);
+// Create an entity for the point
+const pointEntity = viewer.entities.add({
+  position: new SampledPositionProperty(),
+  point: {
+    pixelSize: 10,
+    color: Color.BLUE,
+    clampToGround: true,
+  },
+});
+
+viewer.dataSources.add(
+  dataSource,
+);
+viewer.zoomTo(dataSource);
+
+const timeStepInSeconds = 30;
+const totalSeconds = timeStepInSeconds * (dataSource.length - 1);
 const start = JulianDate.fromIso8601("2020-03-09T23:10:00Z");
 const stop = JulianDate.addSeconds(start, totalSeconds, new JulianDate());
 viewer.clock.startTime = start.clone();
@@ -63,32 +77,74 @@ viewer.clock.shouldAnimate = true;
 
 // The SampledPositionedProperty stores the position and timestamp for each sample along the radar sample series.
 const positionProperty = new SampledPositionProperty();
-
-for (let i = 0; i < data.length; i++) {
-  const dataPoint = data[i];
+let dataS
+await fetch('Shapes/data.geojson')
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data); // Your GeoJSON data
+    dataS = data;
+  })
+  .catch((error) => {
+    console.error('Error fetching GeoJSON:', error);
+  });
+console.log(dataS.features.length);
+for (let i = 0; i < dataS.features.length -1; i++) {
+  const dataPoint = dataS.features[i];
 
   // Declare the time for this individual sample and store it in a new JulianDate instance.
   const time = JulianDate.addSeconds(start, i * timeStepInSeconds, new JulianDate());
-  const position = Cartesian3.fromDegrees(dataPoint.longitude, dataPoint.latitude, dataPoint.height);
-  // Store the position along with its timestamp.
-  // Here we add the positions all upfront, but these can be added at run-time as samples are received from a server.
-  positionProperty.addSample(time, position);
+  const coordinates = dataPoint.geometry.coordinates[0];
+  if(coordinates){
+    console.log(coordinates[0][0]);
+    const longitude = coordinates[0][0];
+    const latitude = coordinates[0][1];
 
-  viewer.entities.add({
-    description: `Location: (${dataPoint.longitude}, ${dataPoint.latitude}, ${dataPoint.height})`,
-    position: position,
-    point: { pixelSize: 10, color: Color.RED }
-  });
+    const position = Cartesian3.fromDegrees(longitude, latitude);
+
+    // Store the position along with its timestamp.
+    // Here we add the positions all upfront, but these can be added at run-time as samples are received from a server.
+    positionProperty.addSample(time, position);
+
+    viewer.entities.add({
+      description: `Location: (${longitude}, ${latitude})`,
+      position: position,
+      point: { pixelSize: 10, color: Color.BLUE },
+      clampToGround: true,
+    });
+  }
+
+
 }
 
-// STEP 4 CODE (green circle entity)
-// Create an entity to both visualize the entire radar sample series with a line and add a point that moves along the samples.
-const airplaneEntity = viewer.entities.add({
-  availability: new TimeIntervalCollection([ new TimeInterval({ start: start, stop: stop }) ]),
-  position: positionProperty,
-  point: { pixelSize: 30, color: Color.GREEN },
-  path: new PathGraphics({ width: 3 })
+/*
+// Sample the GeoJSON data and update the point entity's position
+ // Get the GeoJSON data source
+const entities = dataSource.entities.values;
+const timeInterval = 1.0; // Time interval between samples in seconds
+
+entities.forEach((entity, entityIndex) => {
+  if (entity.polygon) {
+    const coordinates = entity.polygon.hierarchy.getValue().positions;
+
+    coordinates.forEach((position, i) => {
+      const cartographic = Cartographic.fromCartesian(position);
+      const longitude = Math.toDegrees(cartographic.longitude);
+      const latitude = Math.toDegrees(cartographic.latitude);
+
+      // Calculate the time for the sample
+      const time = JulianDate.addSeconds(
+        viewer.clock.startTime,
+        entityIndex * timeInterval + i,
+        new JulianDate()
+      );
+      console.log(longitude)
+      console.log(latitude)
+      // Add the sample to the position property
+      pointEntity.position.addSample(
+        time,
+        Cartesian3.fromDegrees(longitude, latitude)
+      );
+    });
+  }
 });
-// Make the camera track this moving entity.
-viewer.trackedEntity = airplaneEntity;
 */
